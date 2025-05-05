@@ -58,11 +58,11 @@ public class AddingItemsToTheCartTest {
         page.navigate("https://practicesoftwaretesting.com");
         page.getByPlaceholder("Search").fill("Pliers");
         page.getByPlaceholder("Search").press("Enter");
-
-        page.waitForLoadState();
-        page.waitForCondition( () ->  page.getByTestId("product-name").count() > 0);
-
         List<String> products = page.getByTestId("product-name").allTextContents();
+        Assertions.assertThat(products.get(0)).isEqualTo(" Combination Pliers ");
+        System.out.println(products);
+
+        //List<String> products = page.getByTestId("product-name").allTextContents();
         Assertions.assertThat(products.get(0)).containsIgnoringCase("Pliers");
 
         assertThat(page.locator(".card")).hasCount(4);
