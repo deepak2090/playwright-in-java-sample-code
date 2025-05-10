@@ -6,6 +6,7 @@ import com.microsoft.playwright.options.SelectOption;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -24,7 +25,7 @@ public class PlaywrightCollectionsTest {
     static void setUpBrowser() {
         playwright = Playwright.create();
         browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions().setHeadless(true)
+                new BrowserType.LaunchOptions().setHeadless(false)
                         .setArgs(Arrays.asList("--no-sandbox", "--disable-extensions", "--disable-gpu"))
         );
         playwright.selectors().setTestIdAttribute("data-test");
@@ -33,17 +34,28 @@ public class PlaywrightCollectionsTest {
     @BeforeEach
     void setUp() {
         browserContext = browser.newContext();
-        page = browserContext.newPage();
-        openPage();
+        if (browserContext != null) {
+            System.out.println("BrowserContext initialized.");
+            //browserContext.tracing().start(new Tracing.StartOptions().setScreenshots(true).setSnapshots(true));
+            page = browserContext.newPage();
+            openPage();
+        } else {
+            throw new IllegalStateException("Failed to initialize BrowserContext");
+        }
     }
 
     @AfterEach
     void closeContext() {
-        browserContext.close();
+        if (browserContext != null) {
+            System.out.println("Stopping tracing and closing BrowserContext.");
+            //browserContext.tracing().stop(new Tracing.StopOptions().setPath(Paths.get("trace-dir/trace.zip")));
+            browserContext.close();
+        }
     }
 
     @AfterAll
     static void tearDown() {
+        System.out.println("Closing browser and Playwright.");
         browser.close();
         playwright.close();
     }
@@ -56,34 +68,26 @@ public class PlaywrightCollectionsTest {
     @DisplayName("Counting items in a list")
     @Test
     void countingItemsOnThePage() {
-
         int itemsOnThePage = page.locator(".card").count();
-
         Assertions.assertThat(itemsOnThePage).isGreaterThan(0);
     }
 
     @DisplayName("Finding the first matching item")
     @Test
     void findingTheFirstMatchingItem() {
-
         page.locator(".card").first().click();
-
     }
 
     @DisplayName("Finding the nth matching item")
     @Test
     void findingNthMatchingItem() {
-
         page.locator(".card").nth(2).click();
-
     }
 
     @DisplayName("Finding the last matching item")
     @Test
     void findingLastMatchingItem() {
-
         page.locator(".card").last().click();
-
     }
 
     @DisplayName("Finding text in a list")
@@ -93,11 +97,9 @@ public class PlaywrightCollectionsTest {
         @DisplayName("and finding all the text values ")
         @Test
         void withAllTextContents() {
-
             List<String> itemNames = page.getByTestId("product-name").allTextContents();
-
-
-            Assertions.assertThat(itemNames).contains(" Combination Pliers ",
+            Assertions.assertThat(itemNames).contains(
+                    " Combination Pliers ",
                     " Pliers ",
                     " Bolt Cutters ",
                     " Long Nose Pliers ",
@@ -105,10 +107,11 @@ public class PlaywrightCollectionsTest {
                     " Claw Hammer with Shock Reduction Grip ",
                     " Hammer ",
                     " Claw Hammer ",
-                    " Thor Hammer ");
+                    " Thor Hammer "
+            );
         }
 
-        @DisplayName("and asserting with  hasText")
+        @DisplayName("and asserting with hasText")
         @Test
         void withHasText() {
             assertThat(page.getByTestId("product-name"))
@@ -125,5 +128,4 @@ public class PlaywrightCollectionsTest {
                     });
         }
     }
-
 }
