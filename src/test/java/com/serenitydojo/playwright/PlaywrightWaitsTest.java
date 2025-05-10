@@ -55,7 +55,7 @@ public class PlaywrightWaitsTest {
         @BeforeEach
         void openHomePage() {
             page.navigate("https://practicesoftwaretesting.com");
-            //page.waitForSelector(".card-img-top");
+            page.waitForSelector(".card-img-top");
         }
 
         @Test
@@ -66,6 +66,11 @@ public class PlaywrightWaitsTest {
 
         @Test
         void shouldShowAllProductImages(){
+            List<String> productImageTitles = page.locator(".card-img-top").all()
+                    .stream()
+                    .map(img ->img.getAttribute("alt"))
+                    .toList();
+            Assertions.assertThat(productImageTitles).contains("Pliers","Bolt Cutters","Hammer");
 
         }
     }
